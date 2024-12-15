@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\WindowsApp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\WindowsApp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\vec3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\material.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\random.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hittable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hittable_list.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\aabb.h" />
+    <ClInclude Include="..\src\bvh.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{D5414879-6B94-3580-9762-C8DEF7F06852}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{48F8987B-97EA-3E92-90A0-67BAC6E67964}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

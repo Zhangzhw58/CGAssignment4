@@ -1,0 +1,3 @@
+D:/DesktopCopy/作业/计算机图形学/Assignment4_Ray_Tracing/CGAssignment4/build/CMakeFiles/CGAssignment4.dir
+D:/DesktopCopy/作业/计算机图形学/Assignment4_Ray_Tracing/CGAssignment4/build/CMakeFiles/ALL_BUILD.dir
+D:/DesktopCopy/作业/计算机图形学/Assignment4_Ray_Tracing/CGAssignment4/build/CMakeFiles/ZERO_CHECK.dir
