@@ -2,25 +2,76 @@
 #define MATERIAL_H
 #include "utils.h"
 #include "texture.h"
-
 struct hit_record;
 
 // 材料
 class material {
 public:
 	// 散射
+	virtual color emitted(double u, double v, const point3& p) const {
+		return color(0, 0, 0);
+	} 
 	virtual bool scatter(
 		const ray& r_in, const hit_record& rec, color& attenuation, ray&
 		scattered
 	) const = 0;
 };
 
+// 点光源
+class point_light : public material {
+public:
+	point_light(const point3& p, const color& c) : position(p), color(c) {}
+
+	virtual bool scatter(
+		const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
+	) const override {
+		return false;
+	}
+
+	virtual color emitted(double u, double v, const point3& p) const override {
+		double d = distance(p);
+		return color / (d * d);
+	}
+
+	double distance(const point3& p) const {
+		return (position - p).length();
+	}
+
+	bool in_shadow(const point3& p, const hittable& world) const {
+		ray shadow_ray(p, position - p);
+		hit_record rec;
+		if (world.hit(shadow_ray, 0.001, infinity, rec)) {
+			return true;
+		}
+		return false;
+	}
+
+public:
+	point3 position;
+	color color;
+};
+class diffuse_light : public material {
+public:
+	diffuse_light(shared_ptr<texture> a) : emit(a) {}
+	diffuse_light(color c) : emit(make_shared<solid_color>(c)) {}
+	virtual bool scatter(
+		const ray& r_in, const hit_record& rec, color& attenuation, ray&
+		scattered
+	) const override {
+		return false;
+	}
+	virtual color emitted(double u, double v, const point3& p) const
+		override {
+		return emit->value(u, v, p);
+	}
+public:
+	shared_ptr<texture> emit;
+};
 // 朗伯材料, 散射所有光并以反射率 R 衰减
 class lambertian : public material {
 public:
 	lambertian(const color& a) : albedo(make_shared<solid_color>(a)) {}
 	lambertian(shared_ptr<texture> a) : albedo(a) {}
-
 	virtual bool scatter(
 		const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
 	) const override {
@@ -30,7 +81,7 @@ public:
 		if (scatter_direction.near_zero())
 			scatter_direction = rec.normal;
 
-		scattered = ray(rec.p, scatter_direction);
+		scattered = ray(rec.p, scatter_direction, r_in.time());
 		attenuation = albedo->value(rec.u, rec.v, rec.p);
 		return true;
 	}

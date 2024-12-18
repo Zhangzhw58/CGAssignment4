@@ -1,8 +1,5 @@
 #ifndef PERLIN_H
 #define PERLIN_H
-#include "utils.h"
-
-// Perlin‘Î…˘
 class perlin {
 public:
 	perlin() {
@@ -20,26 +17,6 @@ public:
 		delete[] perm_y;
 		delete[] perm_z;
 	}
-	double noise(const point3& p) const {
-		auto u = p.x() - floor(p.x());
-		auto v = p.y() - floor(p.y());
-		auto w = p.z() - floor(p.z());
-		auto i = static_cast<int>(floor(p.x()));
-		auto j = static_cast<int>(floor(p.y()));
-		auto k = static_cast<int>(floor(p.z()));
-		vec3 c[2][2][2];
-
-		for (int di = 0; di < 2; di++)
-			for (int dj = 0; dj < 2; dj++)
-				for (int dk = 0; dk < 2; dk++)
-					c[di][dj][dk] = ranvec[
-						perm_x[(i + di) & 255] ^
-							perm_y[(j + dj) & 255] ^
-							perm_z[(k + dk) & 255]
-					];
-		return perlin_interp(c, u, v, w);
-	}
-	// Õƒ¡˜‘Î…˘
 	double turb(const point3& p, int depth = 7) const {
 		auto accum = 0.0;
 		auto temp_p = p;
@@ -51,7 +28,24 @@ public:
 		}
 		return fabs(accum);
 	}
-
+	double noise(const point3& p) const {
+		auto u = p.x() - floor(p.x());
+		auto v = p.y() - floor(p.y());
+		auto w = p.z() - floor(p.z());
+		auto i = static_cast<int>(floor(p.x()));
+		auto j = static_cast<int>(floor(p.y()));
+		auto k = static_cast<int>(floor(p.z()));
+		vec3 c[2][2][2];
+		for (int di = 0; di < 2; di++)
+			for (int dj = 0; dj < 2; dj++)
+				for (int dk = 0; dk < 2; dk++)
+					c[di][dj][dk] = ranvec[
+						perm_x[(i + di) & 255] ^
+							perm_y[(j + dj) & 255] ^
+							perm_z[(k + dk) & 255]
+					];
+		return perlin_interp(c, u, v, w);
+	}
 private:
 	static const int point_count = 256;
 	vec3* ranvec;
@@ -72,6 +66,17 @@ private:
 			p[i] = p[target];
 			p[target] = tmp;
 		}
+	}
+	static double trilinear_interp(double c[2][2][2], double u, double v,
+		double w) {
+		auto accum = 0.0;
+		for (int i = 0; i < 2; i++)
+			for (int j = 0; j < 2; j++)
+				for (int k = 0; k < 2; k++)
+					accum += (i * u + (1 - i) * (1 - u)) *
+					(j * v + (1 - j) * (1 - v)) *
+					(k * w + (1 - k) * (1 - w)) * c[i][j][k];
+		return accum;
 	}
 	static double perlin_interp(vec3 c[2][2][2], double u, double v, double
 		w) {

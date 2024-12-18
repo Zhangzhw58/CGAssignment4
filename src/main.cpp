@@ -31,12 +31,13 @@ THE SOFTWARE.*/
 
 #include "material.h"
 #include "bvh.h"
-
+#include "aarect.h"
+#include "texture.h"
 static std::vector<std::vector<color>> gCanvas;		//Canvas
 
 // The width and height of the screen
-const auto aspect_ratio = 16.0 / 9.0;
-const int gWidth = 800;
+const auto aspect_ratio = 3.0 / 2.0;
+const int gWidth = 600;
 const int gHeight = static_cast<int>(gWidth / aspect_ratio);
 
 void rendering();
@@ -135,8 +136,10 @@ public:
 		vec3 vup,
 		double vfov, // vertical field-of-view in degrees
 		double aspect_ratio,
-		double aperture, // 散焦模糊参数
-		double focus_dist 
+		double aperture,
+		double focus_dist,
+		double _time0 = 0,
+		double _time1 = 0
 	) {
 		auto theta = degrees_to_radians(vfov);
 		auto h = tan(theta / 2);
@@ -153,13 +156,17 @@ public:
 		lower_left_corner = origin - horizontal / 2 - vertical / 2 - focus_dist * w; // 散焦模糊中心
 		lens_radius = aperture / 2; // 散焦模糊半径
 
+		time0 = _time0;
+		time1 = _time1;
 	}
 	ray get_ray(double s, double t) const {
 		vec3 rd = lens_radius * random_in_unit_disk();
 		vec3 offset = u * rd.x() + v * rd.y();
 		return ray(
 			origin + offset,
-			lower_left_corner + s * horizontal + t * vertical - origin - offset
+			lower_left_corner + s * horizontal + t * vertical - origin -
+			offset,
+			random_double(time0, time1)
 		);
 	}
 private:
@@ -169,40 +176,22 @@ private:
 	vec3 vertical;
 	vec3 u, v, w;
 	double lens_radius;
+	double time0, time1; // shutter open/close times
 };
 
-// 射线上渲染颜色
-color ray_color(const ray& r, const hittable& world, int depth) {
-	hit_record rec;
-
-	// 如果超过最大深度则不提供贡献(黑色)
-	if (depth <= 0)
-		return color(0, 0, 0);
-
-	if (world.hit(r, 0.0001, infinity, rec)) {
-		ray scattered;
-		color attenuation;
-		if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
-			return attenuation * ray_color(scattered, world, depth - 1);
-		return color(0, 0, 0);
-	}
-	vec3 unit_direction = unit_vector(r.direction()); // 射线方向
-	auto t = 0.5 * (unit_direction.y() + 1.0); // 缩放到[0,1]
-	return (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0); // 根据t在两个颜色间插值
-}
 
 // World 一些场景
 // 小球场景
 hittable_list random_scene() {
 	hittable_list world;
 	// 地板
-	/*auto ground_material = make_shared<lambertian>(color(0.5, 0.5, 0.5));
-	world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, ground_material));*/
-	// 棋盘格纹理地板
-	auto checker = make_shared<checker_texture>(color(0.2, 0.3, 0.1),
-		color(0.9, 0.9, 0.9));
-	world.add(make_shared<sphere>(point3(0, -1000, 0), 1000,
-		make_shared<lambertian>(checker)));
+	auto ground_material = make_shared<lambertian>(color(0.5, 0.5, 0.5));
+	world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, ground_material));
+	//// 棋盘格纹理地板
+	//auto checker = make_shared<checker_texture>(color(0.2, 0.3, 0.1),
+	//	color(0.9, 0.9, 0.9));
+	/*world.add(make_shared<sphere>(point3(0, -1000, 0), 1000,
+		make_shared<lambertian>(ground_material)));*/
 	for (int a = -11; a < 11; a++) {
 		for (int b = -11; b < 11; b++) {
 			auto choose_mat = random_double();
@@ -272,6 +261,37 @@ hittable_list earth() {
 	auto earth_surface = make_shared<lambertian>(earth_texture);
 	auto globe = make_shared<sphere>(point3(0, 0, 0), 2, earth_surface);
 	return hittable_list(globe);
+}
+
+// 点光源场景
+hittable_list simple_light() {
+	hittable_list objects;
+
+	// 添加一个噪声纹理的地面球
+	auto pertext = make_shared<noise_texture>(4);
+	objects.add(make_shared<sphere>(point3(0, -1000, 0), 1000, make_shared<lambertian>(pertext)));
+
+	// 添加一个噪声纹理的小球体
+	objects.add(make_shared<sphere>(point3(0, 2, 0), 2, make_shared<lambertian>(pertext)));
+	
+	// 添加一个球形光源
+	auto sphere_light = make_shared<diffuse_light>(color(4, 4, 4));
+	objects.add(make_shared<sphere>(point3(0, 7, 0), 2, sphere_light));
+
+	// 创建一个点光源
+	auto light = make_shared<point_light>(point3(2, 5, 2), color(4, 4, 4));
+	objects.add(make_shared<sphere>(point3(2, 5, 2), 0.05, light));
+	return objects;
+}
+hittable_list cornell_box() {
+	hittable_list objects;
+
+	// 添加一个噪声纹理的地面球体
+	auto pertext = make_shared<noise_texture>(4);
+	objects.add(make_shared<sphere>(point3(0, -1000, 0), 1000, make_shared<lambertian>(pertext)));
+	// 添加一个噪声纹理的小球体
+	objects.add(make_shared<sphere>(point3(0, 2, 0), 2, make_shared<lambertian>(pertext)));
+	return objects;
 }
 
 // main 函数
@@ -358,6 +378,95 @@ void write_color(int x, int y, color pixel_color, int samples_per_pixel) {
 
 }
 
+
+vec3 normalize(const vec3& v) {
+	double len = v.length();
+	if (len > 0) {
+		return v / len;
+	}
+	return v; // 如果向量长度为 0，返回原向量
+}
+// 平行光源类
+class directional_light {
+public:
+	directional_light(const vec3& direction, const color& light_color)
+		: direction(normalize(direction)), light_color(light_color) {}
+
+	// 获取光源方向
+	vec3 get_direction() const {
+		return direction;
+	}
+
+	// 获取光源颜色
+	color get_color() const {
+		return light_color;
+	}
+
+private:
+	vec3 direction;    // 光源方向
+	color light_color; // 光源颜色
+};
+
+
+// 射线上渲染颜色
+// 方向性光源
+color ray_color(const ray& r, const color& background, const hittable& world, const directional_light& light,
+	int depth) {
+	hit_record rec;
+	// If we've exceeded the ray bounce limit, no more light is gathered.
+	if (depth <= 0)
+		return color(0, 0, 0);
+	// If the ray hits nothing, return the background color.
+	if (!world.hit(r, 0.001, infinity, rec))
+		return background;
+	ray scattered;
+	color attenuation;
+	color emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p);
+
+	// 处理平行光源
+	vec3 light_direction = light.get_direction();
+	color light_color = light.get_color();
+
+	// 发射阴影光线，检查是否被遮挡
+	ray shadow_ray(rec.p, -light_direction);
+	hit_record shadow_rec;
+	if (!world.hit(shadow_ray, 0.001, infinity, shadow_rec)) {
+		// 如果没有被遮挡，计算光照
+		double light_intensity = dot(rec.normal, -light_direction);
+		if (light_intensity > 0) {
+			emitted += light_color * light_intensity;
+		}
+	}
+
+	if (!rec.mat_ptr->scatter(r, rec, attenuation, scattered))
+		return emitted;
+	return emitted + attenuation * ray_color(scattered, background, world, light,
+		depth - 1);
+}
+
+// 点光源
+color ray_color1(const ray& r, const color& background, const hittable& world, const point_light& light, int depth) {
+	hit_record rec;
+	if (depth <= 0)
+		return color(0, 0, 0);
+	if (!world.hit(r, 0.001, infinity, rec))
+		return background;
+
+	ray scattered;
+	color attenuation;
+	color emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p);
+
+	if (!rec.mat_ptr->scatter(r, rec, attenuation, scattered))
+		return emitted;
+
+	color light_color = color(0, 0, 0);
+	if (!light.in_shadow(rec.p, world)) {
+		double d = light.distance(rec.p);
+		light_color = light.color / (d * d);
+	}
+
+	return emitted + attenuation * ray_color1(scattered, background, world, light, depth - 1) + light_color;
+}
 // 渲染
 void rendering()
 {
@@ -370,7 +479,7 @@ void rendering()
 
 	const int image_width = gWidth;
 	const int image_height = gHeight;
-	const int samples_per_pixel = 16; //500;
+	const int samples_per_pixel = 500; //500;
 	const int max_depth = 50; //50; // 最大漫反射次数
 
 	//// 小球场景
@@ -391,9 +500,13 @@ void rendering()
 	hittable_list world;
 	point3 lookfrom;
 	point3 lookat;
+	// 添加一个平行光源
+	point_light light = point_light(point3(2, 5, 2), color(4, 4, 4));
+	
 	auto vfov = 40.0;
 	auto aperture = 0.0;
-	switch (1) {
+	color background(0, 0, 0);
+	switch (5) {
 	case 1:
 		// 小球场景
 		world = random_scene();
@@ -416,11 +529,17 @@ void rendering()
 		lookat = point3(0, 0, 0);
 		vfov = 20.0;
 		break;
-	default:
 	case 4:
 		world = earth();
 		lookfrom = point3(13, 2, 3);
 		lookat = point3(0, 0, 0);
+		vfov = 20.0;
+		break;
+	default:
+	case 5:
+		world = simple_light();
+		lookfrom = point3(26, 3, 6);
+		lookat = point3(0, 2, 0);
 		vfov = 20.0;
 		break;
 
@@ -429,7 +548,9 @@ void rendering()
 	// Camera
 	vec3 vup(0, 1, 0);
 	auto dist_to_focus = 10.0;
-	camera cam(lookfrom, lookat, vup, vfov, aspect_ratio, aperture, dist_to_focus);
+
+	camera cam(lookfrom, lookat, vup, vfov, aspect_ratio, aperture, dist_to_focus,
+		0.0, 1.0);
 
 	// Render
 
@@ -446,7 +567,7 @@ void rendering()
 				auto u = (double(i) + random_double()) / (image_width - 1);
 				auto v = (double(j) + random_double()) / (image_height - 1);
 				ray r = cam.get_ray(u, v);
-				pixel_color += ray_color(r, world, max_depth);
+				pixel_color += ray_color1(r, background, world,light, max_depth);
 			}
 			write_color(i, j , pixel_color, samples_per_pixel);
 

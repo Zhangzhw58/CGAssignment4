@@ -340,6 +340,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\main.cpp" />
     <ClInclude Include="..\external\stb_image.h" />
     <ClInclude Include="..\src\aabb.h" />
+    <ClInclude Include="..\src\aarect.h" />
     <ClInclude Include="..\src\bvh.h" />
     <ClInclude Include="..\src\hittable.h" />
     <ClInclude Include="..\src\hittable_list.h" />
@@ -348,7 +349,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="..\src\random.h" />
     <ClInclude Include="..\src\ray.h" />
     <ClInclude Include="..\src\rtw_stb_image.h" />
-    <ClInclude Include="..\src\save_image.h" />
     <ClInclude Include="..\src\texture.h" />
     <ClInclude Include="..\src\utils.h" />
     <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\WindowsApp.h" />
