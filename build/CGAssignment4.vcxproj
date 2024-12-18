@@ -341,7 +341,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="..\external\stb_image.h" />
     <ClInclude Include="..\src\aabb.h" />
     <ClInclude Include="..\src\aarect.h" />
+    <ClInclude Include="..\src\box.h" />
     <ClInclude Include="..\src\bvh.h" />
+    <ClInclude Include="..\src\constant_media.h" />
     <ClInclude Include="..\src\hittable.h" />
     <ClInclude Include="..\src\hittable_list.h" />
     <ClInclude Include="..\src\material.h" />

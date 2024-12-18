@@ -16,6 +16,4 @@ vec3 get_color(color pixel_color, int samples_per_pixel) {
 	return vec3(r, g, b);
 }
 
-
-
 #endif // !COLOR_H

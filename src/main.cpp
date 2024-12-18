@@ -35,11 +35,13 @@ THE SOFTWARE.*/
 #include "texture.h"
 #include "color.h"
 #include "TRD.h"
+#include "box.h"
+#include "constant_media.h"
 
 static std::vector<std::vector<color>> gCanvas;		//Canvas
 
 // The width and height of the screen
-const auto aspect_ratio = 3.0 / 2.0;
+const auto aspect_ratio = 1.0 / 1.0;/*3.0 / 2.0;*/
 const int gWidth = 800;
 const int gHeight = static_cast<int>(gWidth / aspect_ratio);
 
@@ -189,7 +191,7 @@ private:
 
 
 // World 一些场景
-// 小球场景
+// 1、小球场景
 hittable_list random_scene() {
 	hittable_list world;
 	// 地板
@@ -263,7 +265,7 @@ hittable_list two_perlin_spheres() {
 	return objects;
 }
 
-// 图片纹理场景，把图片贴在球上: 地球
+// 4、图片纹理场景，把图片贴在球上: 地球
 hittable_list earth() {
 	auto earth_texture = make_shared<image_texture>("../image/earthmap.jpg");
 	auto earth_surface = make_shared<lambertian>(earth_texture);
@@ -271,7 +273,7 @@ hittable_list earth() {
 	return hittable_list(globe);
 }
 
-// 点光源场景
+// 5、点光源场景
 hittable_list simple_light() {
 	hittable_list objects;
 
@@ -291,16 +293,58 @@ hittable_list simple_light() {
 	objects.add(make_shared<sphere>(point3(2, 5, 2), 0.05, light));
 	return objects;
 }
+
+// 6、康奈尔盒子
 hittable_list cornell_box() {
 	hittable_list objects;
-
-	// 添加一个噪声纹理的地面球体
-	auto pertext = make_shared<noise_texture>(4);
-	objects.add(make_shared<sphere>(point3(0, -1000, 0), 1000, make_shared<lambertian>(pertext)));
-	// 添加一个噪声纹理的小球体
-	objects.add(make_shared<sphere>(point3(0, 2, 0), 2, make_shared<lambertian>(pertext)));
+	auto red = make_shared<lambertian>(color(.65, .05, .05));
+	auto white = make_shared<lambertian>(color(.73, .73, .73));
+	auto green = make_shared<lambertian>(color(.12, .45, .15));
+	auto light = make_shared<diffuse_light>(color(15, 15, 15));
+	objects.add(make_shared<yz_rect>(0, 555, 0, 555, 555, green));
+	objects.add(make_shared<yz_rect>(0, 555, 0, 555, 0, red));
+	objects.add(make_shared<xz_rect>(213, 343, 227, 332, 554, light));
+	objects.add(make_shared<xz_rect>(0, 555, 0, 555, 0, white));
+	objects.add(make_shared<xz_rect>(0, 555, 0, 555, 555, white));
+	objects.add(make_shared<xy_rect>(0, 555, 0, 555, 555, white));
+	// 加两个立方体
+	shared_ptr<hittable> box1 = make_shared<box>(point3(0, 0, 0), point3(165, 330,
+		165), white);
+	box1 = make_shared<rotate_y>(box1, 15); // 旋转
+	box1 = make_shared<translate>(box1, vec3(265, 0, 295)); // 平移
+	objects.add(box1);
+	shared_ptr<hittable> box2 = make_shared<box>(point3(0, 0, 0),
+		point3(165, 165, 165), white);
+	box2 = make_shared<rotate_y>(box2, -18);
+	box2 = make_shared<translate>(box2, vec3(130, 0, 65));
+	objects.add(box2);
 	return objects;
-}
+}
+// 7、烟雾+康奈尔盒子
+hittable_list cornell_smoke() {
+	hittable_list objects;
+	auto red = make_shared<lambertian>(color(.65, .05, .05));
+	auto white = make_shared<lambertian>(color(.73, .73, .73));
+	auto green = make_shared<lambertian>(color(.12, .45, .15));
+	auto light = make_shared<diffuse_light>(color(7, 7, 7));
+	objects.add(make_shared<yz_rect>(0, 555, 0, 555, 555, green));
+	objects.add(make_shared<yz_rect>(0, 555, 0, 555, 0, red));
+	objects.add(make_shared<xz_rect>(113, 443, 127, 432, 554, light));
+	objects.add(make_shared<xz_rect>(0, 555, 0, 555, 555, white));
+	objects.add(make_shared<xz_rect>(0, 555, 0, 555, 0, white));
+	objects.add(make_shared<xy_rect>(0, 555, 0, 555, 555, white));
+	shared_ptr<hittable> box1 = make_shared<box>(point3(0, 0, 0),
+		point3(165, 330, 165), white);
+	box1 = make_shared<rotate_y>(box1, 15);
+	box1 = make_shared<translate>(box1, vec3(265, 0, 295));
+	shared_ptr<hittable> box2 = make_shared<box>(point3(0, 0, 0),
+		point3(165, 165, 165), white);
+	box2 = make_shared<rotate_y>(box2, -18);
+	box2 = make_shared<translate>(box2, vec3(130, 0, 65));
+	objects.add(make_shared<constant_medium>(box1, 0.01, color(0, 0, 0)));
+	objects.add(make_shared<constant_medium>(box2, 0.01, color(1, 1, 1)));
+	return objects;
+}
 
 // main 函数
 int main(int argc, char* args[])
@@ -486,7 +530,7 @@ void rendering()
 
 	const int image_width = gWidth;
 	const int image_height = gHeight;
-	const int samples_per_pixel = 16; //500;
+	const int samples_per_pixel = 32; //500;
 	
 
 	// World
@@ -499,7 +543,7 @@ void rendering()
 	auto vfov = 40.0;
 	auto aperture = 0.0;
 	// 选择场景
-	switch (1) {
+	switch (0) {
 	case 1:
 		// 很多小球场景
 		world = random_scene();
@@ -528,7 +572,6 @@ void rendering()
 		lookat = point3(0, 0, 0);
 		vfov = 20.0;
 		break;
-	default:
 	case 5: // 点光源
 		background = color(0, 0, 0); // 设置背景颜色是黑色
 		world = simple_light();
@@ -536,8 +579,29 @@ void rendering()
 		lookat = point3(0, 2, 0);
 		vfov = 20.0;
 		break;
-
+	case 6: // 康奈尔盒子
+		world = cornell_box();
+		background = color(0, 0, 0);
+		lookfrom = point3(278, 278, -800);
+		lookat = point3(278, 278, 0);
+		vfov = 40.0;
+		break;
+	default:
+	case 7: // 烟雾康奈尔盒子
+		world = cornell_smoke();
+		lookfrom = point3(278, 278, -800);
+		lookat = point3(278, 278, 0);
+		vfov = 40.0;
+		break;
+	/*case 8:
+		world = final_scene();
+		background = color(0, 0, 0);
+		lookfrom = point3(478, 278, -600);
+		lookat = point3(278, 278, 0);
+		vfov = 40.0;
+		break;	*/
 	}
+	
 	
 	// Camera
 	vec3 vup(0, 1, 0);
@@ -561,9 +625,10 @@ void rendering()
 				auto u = (double(i) + random_double()) / (image_width - 1);
 				auto v = (double(j) + random_double()) / (image_height - 1);
 				ray r = cam.get_ray(u, v);
-				/*pixel_color += ray_color1(r, background, world, light, max_depth);*/
-				pixel_color += ray_color(r, background, world, max_depth);
-				//pixel_color += ray_color(r, world, max_depth);
+				pixel_color += ray_color1(r, background, world, light, max_depth); // 点光源
+				//pixel_color += ray_color(r, background, world, light, max_depth); // 面光源
+				//pixel_color += ray_color(r, background, world, max_depth); // 蒙特卡洛积分
+				/*pixel_color += ray_color(r, world, max_depth);*/
 			}
 			//pixel_color /= samples_per_pixel;
 			//pixel_color = get_color(pixel_color, samples_per_pixel);
