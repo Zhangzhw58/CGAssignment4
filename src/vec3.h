@@ -124,8 +124,16 @@ inline vec3 random_in_unit_sphere() {
 	}
 }
 
+//inline vec3 random_unit_vector() {
+//	return unit_vector(random_in_unit_sphere());
+//}
+
 inline vec3 random_unit_vector() {
-	return unit_vector(random_in_unit_sphere());
+	while (true) {
+		vec3 p = vec3::random(-1, 1);
+		if (p.length_squared() >= 1) continue;
+		return unit_vector(p);
+	}
 }
 
 // 另一种漫反射实现

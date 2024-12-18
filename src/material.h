@@ -1,6 +1,8 @@
+#pragma once
 #ifndef MATERIAL_H
 #define MATERIAL_H
 #include "utils.h"
+#include "hittable.h"
 #include "texture.h"
 struct hit_record;
 
@@ -10,7 +12,7 @@ public:
 	// 散射
 	virtual color emitted(double u, double v, const point3& p) const {
 		return color(0, 0, 0);
-	} 
+	}
 	virtual bool scatter(
 		const ray& r_in, const hit_record& rec, color& attenuation, ray&
 		scattered
@@ -50,45 +52,6 @@ public:
 	point3 position;
 	color color;
 };
-class diffuse_light : public material {
-public:
-	diffuse_light(shared_ptr<texture> a) : emit(a) {}
-	diffuse_light(color c) : emit(make_shared<solid_color>(c)) {}
-	virtual bool scatter(
-		const ray& r_in, const hit_record& rec, color& attenuation, ray&
-		scattered
-	) const override {
-		return false;
-	}
-	virtual color emitted(double u, double v, const point3& p) const
-		override {
-		return emit->value(u, v, p);
-	}
-public:
-	shared_ptr<texture> emit;
-};
-// 朗伯材料, 散射所有光并以反射率 R 衰减
-class lambertian : public material {
-public:
-	lambertian(const color& a) : albedo(make_shared<solid_color>(a)) {}
-	lambertian(shared_ptr<texture> a) : albedo(a) {}
-	virtual bool scatter(
-		const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
-	) const override {
-		auto scatter_direction = rec.normal + random_unit_vector(); // 散射方向
-
-		// 如果在0附近，改成法线方向
-		if (scatter_direction.near_zero())
-			scatter_direction = rec.normal;
-
-		scattered = ray(rec.p, scatter_direction, r_in.time());
-		attenuation = albedo->value(rec.u, rec.v, rec.p);
-		return true;
-	}
-public:
-	shared_ptr<texture> albedo;
-};
-
 // 金属材料，镜面反射
 class metal : public material {
 public:
@@ -99,7 +62,8 @@ public:
 	) const override {
 		vec3 reflected = reflect(unit_vector(r_in.direction()),
 			rec.normal);
-		scattered = ray(rec.p, reflected + fuzz * random_in_unit_sphere()); // 反射方向添加模糊扰动
+		scattered = ray(rec.p, reflected + fuzz * random_in_unit_sphere(),
+			r_in.time());
 		attenuation = albedo;
 		return (dot(scattered.direction(), rec.normal) > 0);
 	}
@@ -119,8 +83,6 @@ public:
 		attenuation = color(1.0, 1.0, 1.0);
 		double refraction_ratio = rec.front_face ? (1.0 / ir) : ir;
 		vec3 unit_direction = unit_vector(r_in.direction());
-		vec3 refracted = refract(unit_direction, rec.normal,
-			refraction_ratio);
 		// 判断全反射
 		double cos_theta = fmin(dot(-unit_direction, rec.normal), 1.0);
 		double sin_theta = sqrt(1.0 - cos_theta * cos_theta);
@@ -132,12 +94,11 @@ public:
 		else
 			direction = refract(unit_direction, rec.normal,
 				refraction_ratio);
-		scattered = ray(rec.p, direction);
+		scattered = ray(rec.p, direction, r_in.time());
 		return true;
 	}
 public:
 	double ir; // Index of Refraction
-
 private:
 	static double reflectance(double cosine, double ref_idx) {
 		// Use Schlick's approximation for reflectance.
@@ -146,6 +107,41 @@ private:
 		return r0 + (1 - r0) * pow((1 - cosine), 5);
 	}
 };
-
-
+// 朗伯材料, 散射所有光并以反射率 R 衰减
+class lambertian : public material {
+public:
+	lambertian(const color& a) : albedo(make_shared<solid_color>(a)) {}
+	lambertian(shared_ptr<texture> a) : albedo(a) {}
+	virtual bool scatter(
+		const ray& r_in, const hit_record& rec, color& attenuation, ray&
+		scattered
+	) const override {
+		auto scatter_direction = rec.normal + random_unit_vector();
+		// Catch degenerate scatter direction
+		if (scatter_direction.near_zero())
+			scatter_direction = rec.normal;
+		scattered = ray(rec.p, scatter_direction, r_in.time());
+		attenuation = albedo->value(rec.u, rec.v, rec.p);
+		return true;
+	}
+public:
+	shared_ptr<texture> albedo;
+};
+class diffuse_light : public material {
+public:
+	diffuse_light(shared_ptr<texture> a) : emit(a) {}
+	diffuse_light(color c) : emit(make_shared<solid_color>(c)) {}
+	virtual bool scatter(
+		const ray& r_in, const hit_record& rec, color& attenuation, ray&
+		scattered
+	) const override {
+		return false;
+	}
+	virtual color emitted(double u, double v, const point3& p) const
+		override {
+		return emit->value(u, v, p);
+	}
+public:
+	shared_ptr<texture> emit;
+};
 #endif

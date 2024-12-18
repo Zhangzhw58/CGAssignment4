@@ -33,14 +33,22 @@ THE SOFTWARE.*/
 #include "bvh.h"
 #include "aarect.h"
 #include "texture.h"
+#include "color.h"
+#include "TRD.h"
+
 static std::vector<std::vector<color>> gCanvas;		//Canvas
 
 // The width and height of the screen
 const auto aspect_ratio = 3.0 / 2.0;
-const int gWidth = 600;
+const int gWidth = 800;
 const int gHeight = static_cast<int>(gWidth / aspect_ratio);
 
 void rendering();
+
+// 光线
+color ray_color(const ray& r, const hittable& world, int depth);
+color ray_color(const ray& r, const color& background, const hittable& world,
+	int depth);
 
 // 射线与球相交
 double hit_sphere(const point3& center, double radius, const ray& r) {
@@ -136,7 +144,7 @@ public:
 		vec3 vup,
 		double vfov, // vertical field-of-view in degrees
 		double aspect_ratio,
-		double aperture,
+		double aperture, // 散焦模糊参数
 		double focus_dist,
 		double _time0 = 0,
 		double _time1 = 0
@@ -375,9 +383,7 @@ void write_color(int x, int y, color pixel_color, int samples_per_pixel) {
 	b = sqrt(scale * b);
 
 	gCanvas[y][x] = color(r, g, b);
-
 }
-
 
 vec3 normalize(const vec3& v) {
 	double len = v.length();
@@ -386,6 +392,7 @@ vec3 normalize(const vec3& v) {
 	}
 	return v; // 如果向量长度为 0，返回原向量
 }
+
 // 平行光源类
 class directional_light {
 public:
@@ -436,7 +443,7 @@ color ray_color(const ray& r, const color& background, const hittable& world, co
 		if (light_intensity > 0) {
 			emitted += light_color * light_intensity;
 		}
-	}
+}
 
 	if (!rec.mat_ptr->scatter(r, rec, attenuation, scattered))
 		return emitted;
@@ -479,36 +486,22 @@ void rendering()
 
 	const int image_width = gWidth;
 	const int image_height = gHeight;
-	const int samples_per_pixel = 500; //500;
-	const int max_depth = 50; //50; // 最大漫反射次数
-
-	//// 小球场景
-	//// World
-	//auto world = random_scene();
-	//world = hittable_list(make_shared<bvh_node>(world, 0, 0)); // 应用 BVH 树
-
-	//// Camera
-	//point3 lookfrom(13, 2, 3);
-	//point3 lookat(0, 0, 0);
-	//vec3 vup(0, 1, 0);
-	//auto dist_to_focus = 10.0;
-	//auto aperture = 0.1;
-
-	//camera cam(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
+	const int samples_per_pixel = 16; //500;
+	
 
 	// World
 	hittable_list world;
 	point3 lookfrom;
 	point3 lookat;
 	// 添加一个平行光源
-	point_light light = point_light(point3(2, 5, 2), color(4, 4, 4));
-	
+	const point_light light = point_light(point3(2, 5, 2), color(4, 4, 4));
+
 	auto vfov = 40.0;
 	auto aperture = 0.0;
-	color background(0, 0, 0);
-	switch (5) {
+	// 选择场景
+	switch (1) {
 	case 1:
-		// 小球场景
+		// 很多小球场景
 		world = random_scene();
 		lookfrom = point3(13, 2, 3);
 		lookat = point3(0, 0, 0);
@@ -536,7 +529,8 @@ void rendering()
 		vfov = 20.0;
 		break;
 	default:
-	case 5:
+	case 5: // 点光源
+		background = color(0, 0, 0); // 设置背景颜色是黑色
 		world = simple_light();
 		lookfrom = point3(26, 3, 6);
 		lookat = point3(0, 2, 0);
@@ -567,8 +561,12 @@ void rendering()
 				auto u = (double(i) + random_double()) / (image_width - 1);
 				auto v = (double(j) + random_double()) / (image_height - 1);
 				ray r = cam.get_ray(u, v);
-				pixel_color += ray_color1(r, background, world,light, max_depth);
+				/*pixel_color += ray_color1(r, background, world, light, max_depth);*/
+				pixel_color += ray_color(r, background, world, max_depth);
+				//pixel_color += ray_color(r, world, max_depth);
 			}
+			//pixel_color /= samples_per_pixel;
+			//pixel_color = get_color(pixel_color, samples_per_pixel);
 			write_color(i, j , pixel_color, samples_per_pixel);
 
 		}

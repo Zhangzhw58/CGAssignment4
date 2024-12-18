@@ -1,8 +1,7 @@
+#pragma once
 #ifndef RAY_H
 #define RAY_H
 #include "vec3.h"
-
-// …‰œﬂ¿‡
 class ray {
 public:
 	ray() {}
@@ -20,4 +19,5 @@ public:
 	vec3 dir;
 	double tm;
 };
+
 #endif
