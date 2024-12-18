@@ -35,8 +35,8 @@ THE SOFTWARE.*/
 static std::vector<std::vector<color>> gCanvas;		//Canvas
 
 // The width and height of the screen
-const auto aspect_ratio = 3.0 / 2.0;
-const int gWidth = 1200;
+const auto aspect_ratio = 16.0 / 9.0;
+const int gWidth = 800;
 const int gHeight = static_cast<int>(gWidth / aspect_ratio);
 
 void rendering();
@@ -73,6 +73,22 @@ public:
 	point3 center; // 球心
 	double radius; // 半径
 	shared_ptr<material> mat_ptr; // 材料
+	
+private:
+	// 纹理坐标
+	static void get_sphere_uv(const point3& p, double& u, double& v) {
+		// p: a given point on the sphere of radius one, centered at the origin.
+		// u: returned value [0,1] of angle around the Y axis from X=-1.
+		// v: returned value [0,1] of angle from Y=-1 to Y=+1.
+		// <1 0 0> yields <0.50 0.50> <-1 0 0> yields <0.00 0.50 >
+		// <0 1 0> yields <0.50 1.00> < 0 -1 0> yields <0.50 0.00 >
+		// <0 0 1> yields <0.25 0.50> < 0 0 -1> yields <0.75 0.50 >
+		auto theta = acos(-p.y());
+		auto phi = atan2(-p.z(), p.x()) + pi;
+		u = phi / (2 * pi);
+		v = theta / pi;
+	}
+
 };
 
 // 判断光线与球体碰撞
@@ -96,6 +112,7 @@ const {
 	rec.p = r.at(rec.t);
 	vec3 outward_normal = (rec.p - center) / radius;
 	rec.set_face_normal(r, outward_normal);
+	get_sphere_uv(outward_normal, rec.u, rec.v);
 	rec.mat_ptr = mat_ptr;
 
 	return true;
@@ -158,7 +175,7 @@ private:
 color ray_color(const ray& r, const hittable& world, int depth) {
 	hit_record rec;
 
-	// 如果超过最大深度则不提供贡献
+	// 如果超过最大深度则不提供贡献(黑色)
 	if (depth <= 0)
 		return color(0, 0, 0);
 
@@ -174,10 +191,18 @@ color ray_color(const ray& r, const hittable& world, int depth) {
 	return (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0); // 根据t在两个颜色间插值
 }
 
+// World 一些场景
+// 小球场景
 hittable_list random_scene() {
 	hittable_list world;
-	auto ground_material = make_shared<lambertian>(color(0.5, 0.5, 0.5));
-	world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, ground_material));
+	// 地板
+	/*auto ground_material = make_shared<lambertian>(color(0.5, 0.5, 0.5));
+	world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, ground_material));*/
+	// 棋盘格纹理地板
+	auto checker = make_shared<checker_texture>(color(0.2, 0.3, 0.1),
+		color(0.9, 0.9, 0.9));
+	world.add(make_shared<sphere>(point3(0, -1000, 0), 1000,
+		make_shared<lambertian>(checker)));
 	for (int a = -11; a < 11; a++) {
 		for (int b = -11; b < 11; b++) {
 			auto choose_mat = random_double();
@@ -218,6 +243,36 @@ hittable_list random_scene() {
 	return world;
 }
 
+// 两个球场景: 棋盘格纹理
+hittable_list two_spheres() {
+	hittable_list objects;
+	auto checker = make_shared<checker_texture>(color(0.2, 0.3, 0.1),
+		color(0.9, 0.9, 0.9));
+	objects.add(make_shared<sphere>(point3(0, -10, 0), 10,
+		make_shared<lambertian>(checker)));
+	objects.add(make_shared<sphere>(point3(0, 10, 0), 10,
+		make_shared<lambertian>(checker)));
+	return objects;
+}
+
+// 球+平面场景: perlin噪声纹理
+hittable_list two_perlin_spheres() {
+	hittable_list objects;
+	auto pertext = make_shared<noise_texture>(4); // 大理石纹理
+	objects.add(make_shared<sphere>(point3(0, -1000, 0), 1000,
+		make_shared<lambertian>(pertext)));
+	objects.add(make_shared<sphere>(point3(0, 2, 0), 2, make_shared<lambertian>
+		(pertext)));
+	return objects;
+}
+
+// 图片纹理场景，把图片贴在球上: 地球
+hittable_list earth() {
+	auto earth_texture = make_shared<image_texture>("../image/earthmap.jpg");
+	auto earth_surface = make_shared<lambertian>(earth_texture);
+	auto globe = make_shared<sphere>(point3(0, 0, 0), 2, earth_surface);
+	return hittable_list(globe);
+}
 
 int main(int argc, char* args[])
 {
@@ -313,22 +368,66 @@ void rendering()
 
 	const int image_width = gWidth;
 	const int image_height = gHeight;
-	const int samples_per_pixel = 500;
-	const int max_depth = 50; // 最大漫反射次数
+	const int samples_per_pixel = 16; //500;
+	const int max_depth = 50; //50; // 最大漫反射次数
+
+	//// 小球场景
+	//// World
+	//auto world = random_scene();
+	//world = hittable_list(make_shared<bvh_node>(world, 0, 0)); // 应用 BVH 树
+
+	//// Camera
+	//point3 lookfrom(13, 2, 3);
+	//point3 lookat(0, 0, 0);
+	//vec3 vup(0, 1, 0);
+	//auto dist_to_focus = 10.0;
+	//auto aperture = 0.1;
+
+	//camera cam(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
 
 	// World
-	auto world = random_scene();
-	world = hittable_list(make_shared<bvh_node>(world, 0, 0)); // 应用 BVH 树
+	hittable_list world;
+	point3 lookfrom;
+	point3 lookat;
+	auto vfov = 40.0;
+	auto aperture = 0.0;
+	switch (4) {
+	case 1:
+		// 小球场景
+		world = random_scene();
+		lookfrom = point3(13, 2, 3);
+		lookat = point3(0, 0, 0);
+		vfov = 20.0;
+		aperture = 0.1;
+		break;
+	case 2:
+		// 两个球场景
+		world = two_spheres();
+		lookfrom = point3(13, 2, 3);
+		lookat = point3(0, 0, 0);
+		vfov = 20.0;
+		break;
+	case 3:
+		// perlin噪声场景
+		world = two_perlin_spheres();
+		lookfrom = point3(13, 2, 3);
+		lookat = point3(0, 0, 0);
+		vfov = 20.0;
+		break;
+	default:
+	case 4:
+		world = earth();
+		lookfrom = point3(13, 2, 3);
+		lookat = point3(0, 0, 0);
+		vfov = 20.0;
+		break;
 
+	}
+	
 	// Camera
-	point3 lookfrom(13, 2, 3);
-	point3 lookat(0, 0, 0);
 	vec3 vup(0, 1, 0);
 	auto dist_to_focus = 10.0;
-	auto aperture = 0.1;
-
-	camera cam(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
-
+	camera cam(lookfrom, lookat, vup, vfov, aspect_ratio, aperture, dist_to_focus);
 
 	// Render
 
