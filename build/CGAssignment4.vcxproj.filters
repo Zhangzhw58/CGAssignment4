@@ -39,6 +39,7 @@
     <ClInclude Include="..\src\perlin.h" />
     <ClInclude Include="..\src\rtw_stb_image.h" />
     <ClInclude Include="..\external\stb_image.h" />
+    <ClInclude Include="..\src\save_image.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\CMakeLists.txt" />

@@ -274,6 +274,7 @@ hittable_list earth() {
 	return hittable_list(globe);
 }
 
+// main 函数
 int main(int argc, char* args[])
 {
 	// Create window app handle
@@ -307,6 +308,7 @@ int main(int argc, char* args[])
 	return 0;
 }
 
+// 每个像素点赋值颜色
 void write_color(int x, int y, color pixel_color)
 {
 	// Out-of-range detection
@@ -391,7 +393,7 @@ void rendering()
 	point3 lookat;
 	auto vfov = 40.0;
 	auto aperture = 0.0;
-	switch (4) {
+	switch (1) {
 	case 1:
 		// 小球场景
 		world = random_scene();

@@ -14,7 +14,6 @@ public:
 	point3 minimum; // 包围盒的最小点
 	point3 maximum; // 包围盒的最大点
 };
-#endif
 
 inline bool aabb::hit(const ray& r, double t_min, double t_max) const {
 	for (int a = 0; a < 3; a++) {
@@ -42,3 +41,4 @@ aabb surrounding_box(aabb box0, aabb box1) {
 	return aabb(small, big);
 }
 
+#endif
