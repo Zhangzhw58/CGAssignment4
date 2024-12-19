@@ -46,6 +46,7 @@ const std::string save_path = "output.bmp";			//运行结果保存路径
 const auto aspect_ratio = 3.0 / 2.0;/*3.0 / 2.0;*/
 const int gWidth = 800;
 const int gHeight = static_cast<int>(gWidth / aspect_ratio);
+const int samples_per_pixel = 5000; //500; // 每点采样数
 
 void rendering();
 
@@ -199,11 +200,15 @@ hittable_list random_scene() {
 	// 地板
 	auto ground_material = make_shared<lambertian>(color(0.5, 0.5, 0.5));
 	world.add(make_shared<sphere>(point3(0, -1000, 0), 1000, ground_material));
-	//// 棋盘格纹理地板
-	//auto checker = make_shared<checker_texture>(color(0.2, 0.3, 0.1),
-	//	color(0.9, 0.9, 0.9));
-	/*world.add(make_shared<sphere>(point3(0, -1000, 0), 1000,
-		make_shared<lambertian>(ground_material)));*/
+	//棋盘格纹理地板
+	/*auto checker = make_shared<checker_texture>(color(0.2, 0.3, 0.1),
+		color(0.9, 0.9, 0.9));
+	world.add(make_shared<sphere>(point3(0, -1000, 0), 1000,
+		make_shared<lambertian>(checker)));*/
+	//// 大理石纹理
+	//auto pertext = make_shared<noise_texture>(4); 
+	//world.add(make_shared<sphere>(point3(0, -1000, 0), 1000,
+	//	make_shared<lambertian>(pertext)));
 	for (int a = -11; a < 11; a++) {
 		for (int b = -11; b < 11; b++) {
 			auto choose_mat = random_double();
@@ -237,10 +242,19 @@ hittable_list random_scene() {
 	}
 	auto material1 = make_shared<dielectric>(1.5);
 	world.add(make_shared<sphere>(point3(0, 1, 0), 1.0, material1));
-	auto material2 = make_shared<lambertian>(color(0.4, 0.2, 0.1));
+	 auto material2 = make_shared<lambertian>(color(0.4, 0.2, 0.1));
 	world.add(make_shared<sphere>(point3(-4, 1, 0), 1.0, material2));
-	auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
-	world.add(make_shared<sphere>(point3(4, 1, 0), 1.0, material3));
+	//// 贴图
+	//auto star_texture = make_shared<image_texture>("../image/star.jpeg");
+	//auto star_surface = make_shared<lambertian>(star_texture);
+	//world.add(make_shared<sphere>(point3(-4, 1, 0), 1.0, star_surface));
+
+	 auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
+	 world.add(make_shared<sphere>(point3(4, 1, 0), 1.0, material3));
+	/*auto earth_texture = make_shared<image_texture>("../image/earthmap.jpg");
+	auto earth_surface = make_shared<lambertian>(earth_texture);
+	world.add(make_shared<sphere>(point3(4, 1, 0), 1.0, earth_surface));*/
+
 	return world;
 }
 
@@ -634,8 +648,6 @@ void rendering()
 
 	const int image_width = gWidth;
 	const int image_height = gHeight;
-	const int samples_per_pixel = 16; //500;
-	
 
 	// World
 	hittable_list world;
@@ -647,7 +659,7 @@ void rendering()
 	auto vfov = 40.0;
 	auto aperture = 0.0;
 	// 选择场景
-	switch (0) {
+	switch (8) {
 	case 1:
 		// 很多小球场景
 		world = random_scene();
