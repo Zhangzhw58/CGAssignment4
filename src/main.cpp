@@ -590,6 +590,39 @@ color ray_color1(const ray& r, const color& background, const hittable& world, c
 	return emitted + attenuation * ray_color1(scattered, background, world, light, depth - 1) + light_color;
 }
 // 渲染
+// Render
+
+// 渲染单行
+void render_row(int j, int image_width, int image_height, int samples_per_pixel, const camera& cam, const color& background, const hittable& world, const point_light& light, int max_depth) {
+    for (int i = 0; i < image_width; i++) {
+        color pixel_color(0, 0, 0);
+        for (int s = 0; s < samples_per_pixel; ++s) {
+            auto u = (double(i) + random_double()) / (image_width - 1);
+            auto v = (double(j) + random_double()) / (image_height - 1);
+            ray r = cam.get_ray(u, v);
+            pixel_color += ray_color1(r, background, world, light, max_depth); // 点光源
+			//pixel_color += ray_color(r, background, world, max_depth); // 蒙特卡洛积分
+			/*pixel_color += ray_color(r, world, max_depth);*/
+		}
+        write_color(i, j, pixel_color, samples_per_pixel);
+    }
+}
+
+// 渲染全屏幕
+void render_image(int image_width, int image_height, int samples_per_pixel, const camera& cam, const color& background, const hittable& world, const point_light& light, int max_depth) {
+    std::vector<std::thread> threads;// 多线程
+
+    for (int j = image_height - 1; j >= 0; j--) {
+		// 创建线程，每个线程渲染一行
+        threads.push_back(std::thread(render_row, j, image_width, image_height, samples_per_pixel, std::ref(cam), std::ref(background), std::ref(world), std::ref(light), max_depth));
+    }
+	// 等待所有线程结束
+    for (auto& t : threads) {
+        t.join();
+    }
+}
+
+// 场景、相机选择与渲染
 void rendering()
 {
 	double startFrame = clock();
@@ -683,31 +716,7 @@ void rendering()
 		0.0, 1.0);
 
 	// Render
-
-	// The main ray-tracing based rendering loop
-	// TODO: finish your own ray-tracing renderer according to the given tutorials
-	for (int j = image_height - 1; j >= 0; j--)
-	{
-		std::cerr << "\r扫描线剩余:" << j << "/" << image_height << ' ' << std::flush; // 显示渲染进度
-		for (int i = 0; i < image_width; i++)
-		{
-
-			color pixel_color(0, 0, 0);
-			for (int s = 0; s < samples_per_pixel; ++s) {
-				auto u = (double(i) + random_double()) / (image_width - 1);
-				auto v = (double(j) + random_double()) / (image_height - 1);
-				ray r = cam.get_ray(u, v);
-				pixel_color += ray_color1(r, background, world, light, max_depth); // 点光源
-				//pixel_color += ray_color(r, background, world, max_depth); // 蒙特卡洛积分
-				/*pixel_color += ray_color(r, world, max_depth);*/
-			}
-			//pixel_color /= samples_per_pixel;
-			//pixel_color = get_color(pixel_color, samples_per_pixel);
-			write_color(i, j , pixel_color, samples_per_pixel);
-
-		}
-	}
-
+	render_image(image_width, image_height, samples_per_pixel, cam, background, world, light, max_depth);
 
 	double endFrame = clock();
 	double timeConsuming = static_cast<double>(endFrame - startFrame) / CLOCKS_PER_SEC;
