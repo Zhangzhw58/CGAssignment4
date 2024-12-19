@@ -132,6 +132,41 @@ void WindowsApp::updateScreenSurface(const std::vector<std::vector<color>> &canv
 	SDL_UpdateWindowSurface(m_window_handle);
 }
 
+void WindowsApp::saveCanvasToImage(const std::vector<std::vector<color>> &canvas, const std::string &filename)
+{
+    int height = canvas.size();
+    int width = canvas[0].size();
+    SDL_Surface *image_surface = SDL_CreateRGBSurface(0, width, height, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+    if (image_surface == nullptr)
+    {
+        std::cerr << "SDL_CreateRGBSurface failed: " << SDL_GetError() << std::endl;
+        return;
+    }
+
+    Uint32 *destPixels = (Uint32 *)image_surface->pixels;
+    for (int j = 0; j < height; ++j)
+    {
+        for (int i = 0; i < width; ++i)
+        {
+            const auto &pixel = canvas[j][i];
+
+            Uint32 color = SDL_MapRGB(
+                image_surface->format,
+                static_cast<uint8_t>(pixel[0] * 255),
+                static_cast<uint8_t>(pixel[1] * 255),
+                static_cast<uint8_t>(pixel[2] * 255));
+            destPixels[(height - 1 - j) * width + i] = color;
+        }
+    }
+
+    if (SDL_SaveBMP(image_surface, filename.c_str()) != 0)
+    {
+        std::cerr << "SDL_SaveBMP failed: " << SDL_GetError() << std::endl;
+    }
+
+    SDL_FreeSurface(image_surface);
+}
+
 WindowsApp::ptr WindowsApp::getInstance()
 {
 	if (m_instance == nullptr)

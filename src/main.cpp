@@ -40,9 +40,10 @@ THE SOFTWARE.*/
 #include "moving_sphere.h"
 
 static std::vector<std::vector<color>> gCanvas;		//Canvas
+const std::string save_path = "output.bmp";			//运行结果保存路径
 
 // The width and height of the screen
-const auto aspect_ratio = 1.0 / 1.0;/*3.0 / 2.0;*/
+const auto aspect_ratio = 3.0 / 2.0;/*3.0 / 2.0;*/
 const int gWidth = 800;
 const int gHeight = static_cast<int>(gWidth / aspect_ratio);
 
@@ -318,9 +319,12 @@ hittable_list cornell_box() {
 		point3(165, 165, 165), white);
 	box2 = make_shared<rotate_y>(box2, -18);
 	box2 = make_shared<translate>(box2, vec3(130, 0, 65));
-	objects.add(box2);
+	objects.add(box2);
+
+
 	return objects;
-}
+}
+
 // 7、烟雾+康奈尔盒子
 hittable_list cornell_smoke() {
 	hittable_list objects;
@@ -345,7 +349,8 @@ hittable_list cornell_smoke() {
 	objects.add(make_shared<constant_medium>(box1, 0.01, color(0, 0, 0)));
 	objects.add(make_shared<constant_medium>(box2, 0.01, color(1, 1, 1)));
 	return objects;
-}
+}
+
 // 8、最终场景
 hittable_list final_scene() {
 	hittable_list boxes1;
@@ -406,13 +411,14 @@ hittable_list final_scene() {
 	)
 	);
 	return objects;
-}
+}
+
 
 // main 函数
 int main(int argc, char* args[])
 {
 	// Create window app handle
-	WindowsApp::ptr winApp = WindowsApp::getInstance(gWidth, gHeight, "CGAssignment4: Ray Tracing");
+	WindowsApp::ptr winApp = WindowsApp::getInstance(gWidth, gHeight, "Group 19: Ray Tracing");
 	if (winApp == nullptr)
 	{
 		std::cerr << "Error: failed to create a window handler" << std::endl;
@@ -438,6 +444,9 @@ int main(int argc, char* args[])
 	}
 
 	renderingThread.join();
+
+	// Save the rendered image to a file
+    winApp->saveCanvasToImage(gCanvas, save_path);
 
 	return 0;
 }
@@ -592,7 +601,7 @@ void rendering()
 
 	const int image_width = gWidth;
 	const int image_height = gHeight;
-	const int samples_per_pixel = 32; //500;
+	const int samples_per_pixel = 16; //500;
 	
 
 	// World
@@ -661,7 +670,8 @@ void rendering()
 		lookfrom = point3(478, 278, -600);
 		lookat = point3(278, 278, 0);
 		vfov = 40.0;
-		break;	
+		break;
+	
 	}
 	
 	

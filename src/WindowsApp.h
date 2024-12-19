@@ -33,6 +33,7 @@ public:
 	bool getIsMouseLeftButtonPressed() const { return m_mouse_left_button_pressed; }
 
 	void updateScreenSurface(const std::vector<std::vector<color>> &canvas);
+	void saveCanvasToImage(const std::vector<std::vector<color>> &canvas, const std::string &filename);
 
 	static WindowsApp::ptr getInstance();
 	static WindowsApp::ptr getInstance(int width, int height, const std::string title = "winApp");
