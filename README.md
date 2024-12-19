@@ -29,3 +29,17 @@ c++ 实现，依赖库GLM2
 
 - background = color(0.5, 0.7, 1.0); // 背景颜色，浅蓝色
 - max_depth = 50; // 最大漫反射次数
+
+### 效果展示
+
+- 小球
+
+![](show_image/大理石纹理2.png)
+
+- 烟雾
+
+![](show_image/烟雾2.png)
+
+- 整体效果
+
+![](show_image/最终结果2.png)
