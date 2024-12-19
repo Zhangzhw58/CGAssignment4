@@ -47,6 +47,7 @@ const auto aspect_ratio = 3.0 / 2.0;/*3.0 / 2.0;*/
 const int gWidth = 800;
 const int gHeight = static_cast<int>(gWidth / aspect_ratio);
 const int samples_per_pixel = 5000; //500; // 每点采样数
+const int scene_choice = 0; // 场景选择(0~8)，0为默认最终场景
 
 void rendering();
 
@@ -659,7 +660,7 @@ void rendering()
 	auto vfov = 40.0;
 	auto aperture = 0.0;
 	// 选择场景
-	switch (8) {
+	switch (scene_choice) {
 	case 1:
 		// 很多小球场景
 		world = random_scene();
