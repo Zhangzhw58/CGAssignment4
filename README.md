@@ -1,6 +1,7 @@
 # 光线追踪
 ## 中山大学计算机图形学期末大作业
 
+- github：[https://github.com/Zhangzhw58/CGAssignment4](https://github.com/Zhangzhw58/CGAssignment4)
 ### 运行环境
 
 Windows + Visual Studio 2022
@@ -23,3 +24,8 @@ c++ 实现，依赖库GLM2
 - gWidth = 800; // 图像宽度
 - samples_per_pixel = 5000;  // 每像素点采样数，值越大图像效果越好，运行时间越长
 - scene_choice = 0; // 场景选择，目前支持(0~8)，0为默认最终场景
+
+`src/TRD.h`中:
+
+- background = color(0.5, 0.7, 1.0); // 背景颜色，浅蓝色
+- max_depth = 50; // 最大漫反射次数
