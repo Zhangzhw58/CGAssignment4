@@ -45,6 +45,9 @@
     <ClInclude Include="..\src\box.h" />
     <ClInclude Include="..\src\constant_media.h" />
     <ClInclude Include="..\src\moving_sphere.h" />
+    <ClInclude Include="..\src\TRD.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\CMakeLists.txt" />
