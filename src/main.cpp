@@ -24,6 +24,7 @@ THE SOFTWARE.*/
 #include <vector>
 #include <thread>
 #include <iostream>
+#include <unordered_map>
 
 #include "WindowsApp.h"
 #include "utils.h"
@@ -38,16 +39,17 @@ THE SOFTWARE.*/
 #include "box.h"
 #include "constant_media.h"
 #include "moving_sphere.h"
+#include "load_model.h"
 
 static std::vector<std::vector<color>> gCanvas;		//Canvas
 const std::string save_path = "output.bmp";			//运行结果保存路径
 
 // The width and height of the screen
 const auto aspect_ratio = 3.0 / 2.0;/*3.0 / 2.0;*/
-const int gWidth = 800;
+const int gWidth = 300;
 const int gHeight = static_cast<int>(gWidth / aspect_ratio);
-const int samples_per_pixel = 5000; //500; // 每点采样数
-const int scene_choice = 0; // 场景选择(0~8)，0为默认最终场景
+const int samples_per_pixel = 20; //500; // 每点采样数
+const int scene_choice = 9; // 场景选择(0~9)，0为默认最终场景
 
 void rendering();
 
@@ -92,12 +94,6 @@ public:
 private:
 	// 纹理坐标
 	static void get_sphere_uv(const point3& p, double& u, double& v) {
-		// p: a given point on the sphere of radius one, centered at the origin.
-		// u: returned value [0,1] of angle around the Y axis from X=-1.
-		// v: returned value [0,1] of angle from Y=-1 to Y=+1.
-		// <1 0 0> yields <0.50 0.50> <-1 0 0> yields <0.00 0.50 >
-		// <0 1 0> yields <0.50 1.00> < 0 -1 0> yields <0.50 0.00 >
-		// <0 0 1> yields <0.25 0.50> < 0 0 -1> yields <0.75 0.50 >
 		auto theta = acos(-p.y());
 		auto phi = atan2(-p.z(), p.x()) + pi;
 		u = phi / (2 * pi);
@@ -259,7 +255,7 @@ hittable_list random_scene() {
 	return world;
 }
 
-// 两个球场景: 棋盘格纹理
+// 2、两个球场景: 棋盘格纹理
 hittable_list two_spheres() {
 	hittable_list objects;
 	auto checker = make_shared<checker_texture>(color(0.2, 0.3, 0.1),
@@ -271,7 +267,7 @@ hittable_list two_spheres() {
 	return objects;
 }
 
-// 球+平面场景: perlin噪声纹理
+// 3、球+平面场景: perlin噪声纹理
 hittable_list two_perlin_spheres() {
 	hittable_list objects;
 	auto pertext = make_shared<noise_texture>(4); // 大理石纹理
@@ -366,8 +362,8 @@ hittable_list cornell_smoke() {
 	return objects;
 }
 
-// 8、最终场景
-hittable_list final_scene() {
+// 8、最终场景盒子1
+hittable_list final_box_scene() {
 	hittable_list boxes1;
 	auto ground = make_shared<lambertian>(color(0.48, 0.83, 0.53));
 	const int boxes_per_side = 20;
@@ -428,6 +424,63 @@ hittable_list final_scene() {
 	return objects;
 }
 
+// 9、真正的最终场景（导入obj）
+hittable_list final_scene() {
+	hittable_list world;
+
+	//// 地面球体
+	//auto albedo = color::random(0.5, 1);
+	//auto fuzz = random_double(0, 0.5);
+	//auto sphere_material = make_shared<lambertian>(make_shared<constant_texture>(albedo));
+	//world.add(make_shared<sphere>(vec3(0, -500, 0), 500, sphere_material));
+	/*auto ground_material = make_shared<lambertian>(color(0.5, 0.5, 0.5));
+	world.add(make_shared<sphere>(point3(0, -5000, 0), 5000, ground_material));*/
+
+	//// 天空盒
+	//const char* filename = "texture/sky.jpg";
+
+	//load_model("texture/sky_box.obj", world, _mats);
+
+	// 元素路径
+	/*std::string obj_path = "scene/fireplace_room/fireplace_room.obj";*/
+	/*std::string obj_path = "scene/cube/cube.obj";*/
+	std::string obj_path = "scene/holodeck/holodeck.obj";
+	load_model(obj_path, world);
+
+
+	// // person
+	// filename = "texture/person.png";
+	// mat = make_shared<lambertian>(make_shared<image_texture>(filename));
+	// _mats = std::unordered_map<std::string, std::shared_ptr<material>>{ {"default", mat} };
+	// trans1 = glm::translate(glm::dmat4(1.0f), glm::dvec3(-0.03, 0, 0.05));
+	// trans2 = glm::rotate(glm::dmat4(1.0f), glm::radians(180.0), glm::dvec3(0.0f, 1.0f, 0.0f));
+	// trans3 = glm::scale(glm::dmat4(1.0f), glm::dvec3(0.0019f, 0.0019f, 0.0019f));
+	// _t = make_shared<matrix_transformer>(trans1 * trans2 * trans3);
+	// load_model("texture/person.obj", world, _mats, _t, false);
+
+	// // 房子
+	// _mats = std::unordered_map<std::string, std::shared_ptr<material>>{
+	// 		{"default", make_shared<lambertian>(color(0.5, 0.5, 0.5))},
+	// 		{"Standard_1", make_shared<lambertian>(make_shared<image_texture>("texture/house_body.jpg"))},
+	// 		{"Standard_2", make_shared<lambertian>(make_shared<image_texture>("texture/plants2.jpg"))},
+	// 		{"Standard_3", make_shared<lambertian>(make_shared<image_texture>("texture/plants1.jpg"))},
+	// };
+	// trans1 = glm::translate(glm::dmat4(1.0f), glm::dvec3(0.05, 0.0, 0.12));
+	// trans2 = glm::rotate(glm::dmat4(1.0f), glm::radians(-15.0), glm::dvec3(0.0f, 1.0f, 0.0f));
+	// trans3 = glm::scale(glm::dmat4(1.0f), glm::dvec3(0.0002f, 0.0002f, 0.0002f));
+	// _t = make_shared<matrix_transformer>(trans1 * trans2 * trans3);
+	// load_model("texture/old_house.obj", world, _mats, _t, false);
+
+	// 光源
+	// 添加一个球形光源
+	/*auto sphere_light = make_shared<diffuse_light>(color(7, 7, 7));
+	world.add(make_shared<sphere>(point3(0, 7, 0), 2, sphere_light));*/
+	auto light = make_shared<diffuse_light>(color(7, 7, 7));
+	world.add(make_shared<xz_rect>(123, 423, 147, 412, 554, light));
+	/*auto difflight = make_shared<diffuse_light>(color(1, 1, 1));
+	world.add(make_shared<sphere>(point3(0.1, 0.1, 0.05), 0.01, difflight));*/
+	return world;
+}
 
 // main 函数
 int main(int argc, char* args[])
@@ -512,6 +565,10 @@ void write_color(int x, int y, color pixel_color, int samples_per_pixel) {
 	g = sqrt(scale * g);
 	b = sqrt(scale * b);
 
+	/*int ir = static_cast<int>(256 - 256 * clamp(r, 0.0, 0.999));
+	int ig = static_cast<int>(256 - 256 * clamp(g, 0.0, 0.999));
+	int ib = static_cast<int>(256 - 256 * clamp(b, 0.0, 0.999));*/
+
 	gCanvas[y][x] = color(r, g, b);
 }
 
@@ -545,42 +602,6 @@ private:
 };
 
 
-// 射线上渲染颜色
-// 方向性光源
-color ray_color(const ray& r, const color& background, const hittable& world, const directional_light& light,
-	int depth) {
-	hit_record rec;
-	// If we've exceeded the ray bounce limit, no more light is gathered.
-	if (depth <= 0)
-		return color(0, 0, 0);
-	// If the ray hits nothing, return the background color.
-	if (!world.hit(r, 0.001, infinity, rec))
-		return background;
-	ray scattered;
-	color attenuation;
-	color emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p);
-
-	// 处理平行光源
-	vec3 light_direction = light.get_direction();
-	color light_color = light.get_color();
-
-	// 发射阴影光线，检查是否被遮挡
-	ray shadow_ray(rec.p, -light_direction);
-	hit_record shadow_rec;
-	if (!world.hit(shadow_ray, 0.001, infinity, shadow_rec)) {
-		// 如果没有被遮挡，计算光照
-		double light_intensity = dot(rec.normal, -light_direction);
-		if (light_intensity > 0) {
-			emitted += light_color * light_intensity;
-		}
-}
-
-	if (!rec.mat_ptr->scatter(r, rec, attenuation, scattered))
-		return emitted;
-	return emitted + attenuation * ray_color(scattered, background, world, light,
-		depth - 1);
-}
-
 // 点光源
 color ray_color1(const ray& r, const color& background, const hittable& world, const point_light& light, int depth) {
 	hit_record rec;
@@ -608,15 +629,15 @@ color ray_color1(const ray& r, const color& background, const hittable& world, c
 // Render
 
 // 渲染单行
-void render_row(int j, int image_width, int image_height, int samples_per_pixel, const camera& cam, const color& background, const hittable& world, const point_light& light, int max_depth) {
+void render_row(int j, int image_width, int image_height, int samples_per_pixel, const camera& cam, const color& background, const hittable& world, int max_depth) {
     for (int i = 0; i < image_width; i++) {
         color pixel_color(0, 0, 0);
         for (int s = 0; s < samples_per_pixel; ++s) {
             auto u = (double(i) + random_double()) / (image_width - 1);
             auto v = (double(j) + random_double()) / (image_height - 1);
             ray r = cam.get_ray(u, v);
-            pixel_color += ray_color1(r, background, world, light, max_depth); // 点光源
-			//pixel_color += ray_color(r, background, world, max_depth); // 蒙特卡洛积分
+            //pixel_color += ray_color1(r, background, world, light, max_depth); // 点光源
+			pixel_color += ray_color(r, background, world, max_depth); // 蒙特卡洛积分
 			/*pixel_color += ray_color(r, world, max_depth);*/
 		}
         write_color(i, j, pixel_color, samples_per_pixel);
@@ -624,12 +645,12 @@ void render_row(int j, int image_width, int image_height, int samples_per_pixel,
 }
 
 // 渲染全屏幕
-void render_image(int image_width, int image_height, int samples_per_pixel, const camera& cam, const color& background, const hittable& world, const point_light& light, int max_depth) {
+void render_image(int image_width, int image_height, int samples_per_pixel, const camera& cam, const color& background, const hittable& world, int max_depth) {
     std::vector<std::thread> threads;// 多线程
 
     for (int j = image_height - 1; j >= 0; j--) {
 		// 创建线程，每个线程渲染一行
-        threads.push_back(std::thread(render_row, j, image_width, image_height, samples_per_pixel, std::ref(cam), std::ref(background), std::ref(world), std::ref(light), max_depth));
+        threads.push_back(std::thread(render_row, j, image_width, image_height, samples_per_pixel, std::ref(cam), std::ref(background), std::ref(world), max_depth));
     }
 	// 等待所有线程结束
     for (auto& t : threads) {
@@ -654,8 +675,8 @@ void rendering()
 	hittable_list world;
 	point3 lookfrom;
 	point3 lookat;
-	// 添加一个平行光源
-	const point_light light = point_light(point3(2, 5, 2), color(4, 4, 4));
+	//// 添加一个平行光源
+	//const point_light light = point_light(point3(2, 5, 2), color(40, 40, 4));
 
 	auto vfov = 40.0;
 	auto aperture = 0.0;
@@ -709,15 +730,20 @@ void rendering()
 		lookat = point3(278, 278, 0);
 		vfov = 40.0;
 		break;
-	default:
-	case 8: // 最终场景
-		world = final_scene();
+	case 8: // 最终场景盒1
+		world = final_box_scene();
 		background = color(0, 0, 0);
 		lookfrom = point3(478, 278, -600);
 		lookat = point3(278, 278, 0);
 		vfov = 40.0;
 		break;
-	
+	default:
+	case 9: // 真正的最终场景
+		world = final_scene();
+		lookfrom = point3(300, 300, 300);
+		lookat = point3(0, 0, 0);
+		vfov = 40.0;
+		break;
 	}
 	
 	
@@ -729,7 +755,7 @@ void rendering()
 		0.0, 1.0);
 
 	// Render
-	render_image(image_width, image_height, samples_per_pixel, cam, background, world, light, max_depth);
+	render_image(image_width, image_height, samples_per_pixel, cam, background, world, max_depth);
 
 	double endFrame = clock();
 	double timeConsuming = static_cast<double>(endFrame - startFrame) / CLOCKS_PER_SEC;

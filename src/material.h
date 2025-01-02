@@ -11,6 +11,7 @@ class material {
 public:
 	// 散射
 	virtual color emitted(double u, double v, const point3& p) const {
+		// 没有光线返回黑色
 		return color(0, 0, 0);
 	}
 	virtual bool scatter(
@@ -160,6 +161,72 @@ public:
 	}
 public:
 	shared_ptr<texture> albedo;
+};
+
+// 通用材质类 (of .obj)
+// 包含环境光、漫反射光、镜面反射光、光泽度和可选的漫反射纹理（图片）
+class generic_material : public material {
+public:
+	// 构造函数
+	generic_material(const vec3& ambient, const vec3& diffuse, const vec3& specular, double shininess, double ref_idx, std::shared_ptr<texture> diffuse_texture = nullptr)
+		: ambient(ambient), diffuse(diffuse), specular(specular), shininess(shininess), ref_idx(ref_idx), diffuse_texture(diffuse_texture) {}
+	// 计算光线与材质相交后的散射行为
+	virtual bool scatter(
+		const ray& r_in, const hit_record& rec, color& attenuation, ray&
+		scattered
+	) const override {
+		// 计算入射光线的单位方向向量
+		vec3 unit_direction = unit_vector(r_in.direction());
+		// 计算反射方向
+		vec3 reflected = reflect(unit_direction, rec.normal);
+		// 计算入射角的余弦值
+		double cos_theta = fmin(dot(-unit_direction, rec.normal), 1.0);
+		// 计算入射角的正弦值
+		double sin_theta = sqrt(1.0 - cos_theta * cos_theta);
+
+		// 判断是否发生全反射
+		bool cannot_refract = ref_idx * sin_theta > 1.0;
+		vec3 direction;
+
+		// 根据全反射判断或 Schlick 的近似公式选择反射或折射方向
+		if (cannot_refract || reflectance(cos_theta, ref_idx) > random_double()) {
+			direction = reflected;
+		}
+		else {
+			direction = refract(unit_direction, rec.normal, ref_idx);
+		}
+
+		// 生成新的散射光线
+		scattered = ray(rec.p, direction, r_in.time());
+
+		// 如果有纹理图片
+		if (diffuse_texture) {
+			// 使用纹理图片的颜色值作为衰减
+			attenuation = diffuse_texture->value(rec.u, rec.v, rec.p);
+		}
+		else {
+			// 否则使用漫反射光的颜色
+			attenuation = diffuse;
+		}
+
+		return true;
+	}
+
+	// 材质属性
+	vec3 ambient; // 环境光
+	vec3 diffuse; // 漫反射光
+	vec3 specular; // 镜面反射光
+	double shininess; // 光泽度
+	double ref_idx; // 折射率
+	std::shared_ptr<texture> diffuse_texture; // 漫反射纹理
+
+private:
+	// 使用 Schlick 的近似公式计算反射率
+	static double reflectance(double cosine, double ref_idx) {
+		auto r0 = (1 - ref_idx) / (1 + ref_idx);
+		r0 = r0 * r0;
+		return r0 + (1 - r0) * pow((1 - cosine), 5);
+	}
 };
 
 #endif

@@ -9,43 +9,71 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\TRD.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\WindowsApp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\aabb.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\aarect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\box.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\bvh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\color.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\constant_media.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\external\stb_image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\hittable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\hittable_list.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\material.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\moving_sphere.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\perlin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\random.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\ray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\rtw_stb_image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\triangle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="D:\DesktopCopy\作业\计算机图形学\Assignment4_Ray_Tracing\CGAssignment4\src\vec3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\material.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\ray.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\random.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hittable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hittable_list.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\aabb.h" />
-    <ClInclude Include="..\src\bvh.h" />
-    <ClInclude Include="..\src\texture.h" />
-    <ClInclude Include="..\src\perlin.h" />
-    <ClInclude Include="..\src\rtw_stb_image.h" />
-    <ClInclude Include="..\external\stb_image.h" />
-    <ClInclude Include="..\src\aarect.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\box.h" />
-    <ClInclude Include="..\src\constant_media.h" />
-    <ClInclude Include="..\src\moving_sphere.h" />
-    <ClInclude Include="..\src\TRD.h">
+    <ClInclude Include="..\src\load_model.h" />
+    <ClInclude Include="..\src\external\tiny_obj_loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
