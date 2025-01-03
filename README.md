@@ -11,6 +11,7 @@ c++ 实现，依赖库GLM2
 
 - src: 项目主要代码，实现了光线追踪的主要功能
 - image: 在项目中的场景中用到的图片文件
+- scene: .obj模型文件，可加载不同的场景
 - show_image: 一些运行结果图
 
 ### 环境配置
@@ -22,9 +23,9 @@ c++ 实现，依赖库GLM2
 `src/main.cpp`中:
 
 - aspect_ratio = 3.0 / 2.0; // 图像长宽比
-- gWidth = 800; // 图像宽度
-- samples_per_pixel = 5000;  // 每像素点采样数，值越大图像效果越好，运行时间越长
-- scene_choice = 0; // 场景选择，目前支持(0~8)，0为默认最终场景
+- gWidth = 500; // 图像宽度
+- samples_per_pixel = 500;  // 每像素点采样数，值越大图像效果越好，运行时间越长
+- scene_choice = 0; // 场景选择，目前支持(0~9)，0为默认最终场景
 
 `src/TRD.h`中:
 
@@ -44,3 +45,15 @@ c++ 实现，依赖库GLM2
 - 整体效果
 
 ![](show_image/最终结果2.png)
+
+- 加载.obj模型（每像素点采样数 = 5）
+
+![](show_image/最终结果3.png)
+
+- 滤波后
+
+![](show_image/最终结果3_processed.jpg)
+
+- 对比图（采用https://imagetostl.com/在线加载）
+
+![](show_image/对比图.png)
