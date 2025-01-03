@@ -16,7 +16,9 @@ c++ 实现，依赖库GLM2
 
 ### 环境配置
 
-请按`readme.pdf`配置好运行环境
+请按`readme2.pdf`配置好运行环境
+
+配置好后将`scene`文件夹放入`build`和`build/Release`文件夹中
 
 ### 运行参数
 
