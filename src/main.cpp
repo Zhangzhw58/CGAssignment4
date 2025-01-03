@@ -46,9 +46,9 @@ const std::string save_path = "output.bmp";			//运行结果保存路径
 
 // The width and height of the screen
 const auto aspect_ratio = 3.0 / 2.0;/*3.0 / 2.0;*/
-const int gWidth = 300;
+const int gWidth = 500;
 const int gHeight = static_cast<int>(gWidth / aspect_ratio);
-const int samples_per_pixel = 5; //500; // 每点采样数
+const int samples_per_pixel = 20; //500; // 每点采样数
 const int scene_choice = 9; // 场景选择(0~9)，0为默认最终场景
 
 void rendering();
