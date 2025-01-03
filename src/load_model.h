@@ -49,9 +49,11 @@ void load_model(std::string obj_path, hittable_list& world) {
         // 材质信息（可能加入更多）
         vec3 ambient(mat.ambient[0], mat.ambient[1], mat.ambient[2]);
         vec3 diffuse(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]);
-        vec3 specular(mat.specular[0], mat.specular[1], mat.specular[2]);
-        double shininess = mat.shininess;
+        vec3 specular(mat.specular[0], mat.specular[1], mat.specular[2]); // 镜面反射颜色
+        vec3 emitted(mat.emission[0], mat.emission[1], mat.emission[2]); // 自发光颜色
+        double shininess = mat.shininess; // 镜面反射指数
         double ref_idx = mat.ior; // 折射率
+        int illum = mat.illum; // 光照模型
 
         std::shared_ptr<texture> diffuse_texture = nullptr;
         if (!mat.diffuse_texname.empty()) {
@@ -60,7 +62,8 @@ void load_model(std::string obj_path, hittable_list& world) {
         }
 
         // 创建通用材质对象
-        auto material = std::make_shared<generic_material>(ambient, diffuse, specular, shininess, ref_idx, diffuse_texture);
+        auto material = std::make_shared<generic_material>(ambient, diffuse, specular, shininess, ref_idx, diffuse_texture, illum, emitted);
+        
         material_map[mat.name] = material; // 插入映射
     }
 

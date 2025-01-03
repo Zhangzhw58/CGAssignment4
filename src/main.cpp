@@ -48,7 +48,7 @@ const std::string save_path = "output.bmp";			//运行结果保存路径
 const auto aspect_ratio = 3.0 / 2.0;/*3.0 / 2.0;*/
 const int gWidth = 300;
 const int gHeight = static_cast<int>(gWidth / aspect_ratio);
-const int samples_per_pixel = 20; //500; // 每点采样数
+const int samples_per_pixel = 5; //500; // 每点采样数
 const int scene_choice = 9; // 场景选择(0~9)，0为默认最终场景
 
 void rendering();
@@ -428,57 +428,27 @@ hittable_list final_box_scene() {
 hittable_list final_scene() {
 	hittable_list world;
 
-	//// 地面球体
-	//auto albedo = color::random(0.5, 1);
-	//auto fuzz = random_double(0, 0.5);
-	//auto sphere_material = make_shared<lambertian>(make_shared<constant_texture>(albedo));
-	//world.add(make_shared<sphere>(vec3(0, -500, 0), 500, sphere_material));
-	/*auto ground_material = make_shared<lambertian>(color(0.5, 0.5, 0.5));
-	world.add(make_shared<sphere>(point3(0, -5000, 0), 5000, ground_material));*/
-
 	//// 天空盒
-	//const char* filename = "texture/sky.jpg";
-
-	//load_model("texture/sky_box.obj", world, _mats);
+	//auto white = make_shared<lambertian>(color(.99, .99, .99));
+	//auto light = make_shared<diffuse_light>(color(.73, .73, .73));
+	//world.add(make_shared<yz_rect>(-10, 50, -10, 50, 50, light));
+	//world.add(make_shared<yz_rect>(-10, 500, -10, 50, -10, light));
+	//world.add(make_shared<xz_rect>(-10, 50, -10, 50, -10, white));
+	//world.add(make_shared<xz_rect>(-10, 50, -10, 50, 55, light));
+	//world.add(make_shared<xy_rect>(-10, 50, -10, 50, 55, light));
+	//world.add(make_shared<xy_rect>(-10, 50, -10, 50, -10, light));
 
 	// 元素路径
-	/*std::string obj_path = "scene/fireplace_room/fireplace_room.obj";*/
+	std::string obj_path = "scene/fireplace_room/fireplace_room.obj";
 	/*std::string obj_path = "scene/cube/cube.obj";*/
-	std::string obj_path = "scene/holodeck/holodeck.obj";
+	/*std::string obj_path = "scene/holodeck/holodeck.obj";*/
 	load_model(obj_path, world);
 
-
-	// // person
-	// filename = "texture/person.png";
-	// mat = make_shared<lambertian>(make_shared<image_texture>(filename));
-	// _mats = std::unordered_map<std::string, std::shared_ptr<material>>{ {"default", mat} };
-	// trans1 = glm::translate(glm::dmat4(1.0f), glm::dvec3(-0.03, 0, 0.05));
-	// trans2 = glm::rotate(glm::dmat4(1.0f), glm::radians(180.0), glm::dvec3(0.0f, 1.0f, 0.0f));
-	// trans3 = glm::scale(glm::dmat4(1.0f), glm::dvec3(0.0019f, 0.0019f, 0.0019f));
-	// _t = make_shared<matrix_transformer>(trans1 * trans2 * trans3);
-	// load_model("texture/person.obj", world, _mats, _t, false);
-
-	// // 房子
-	// _mats = std::unordered_map<std::string, std::shared_ptr<material>>{
-	// 		{"default", make_shared<lambertian>(color(0.5, 0.5, 0.5))},
-	// 		{"Standard_1", make_shared<lambertian>(make_shared<image_texture>("texture/house_body.jpg"))},
-	// 		{"Standard_2", make_shared<lambertian>(make_shared<image_texture>("texture/plants2.jpg"))},
-	// 		{"Standard_3", make_shared<lambertian>(make_shared<image_texture>("texture/plants1.jpg"))},
-	// };
-	// trans1 = glm::translate(glm::dmat4(1.0f), glm::dvec3(0.05, 0.0, 0.12));
-	// trans2 = glm::rotate(glm::dmat4(1.0f), glm::radians(-15.0), glm::dvec3(0.0f, 1.0f, 0.0f));
-	// trans3 = glm::scale(glm::dmat4(1.0f), glm::dvec3(0.0002f, 0.0002f, 0.0002f));
-	// _t = make_shared<matrix_transformer>(trans1 * trans2 * trans3);
-	// load_model("texture/old_house.obj", world, _mats, _t, false);
-
 	// 光源
-	// 添加一个球形光源
+	// 添加一个方形光源
 	/*auto sphere_light = make_shared<diffuse_light>(color(7, 7, 7));
 	world.add(make_shared<sphere>(point3(0, 7, 0), 2, sphere_light));*/
-	auto light = make_shared<diffuse_light>(color(7, 7, 7));
-	world.add(make_shared<xz_rect>(123, 423, 147, 412, 554, light));
-	/*auto difflight = make_shared<diffuse_light>(color(1, 1, 1));
-	world.add(make_shared<sphere>(point3(0.1, 0.1, 0.05), 0.01, difflight));*/
+
 	return world;
 }
 
@@ -559,15 +529,19 @@ void write_color(int x, int y, color pixel_color, int samples_per_pixel) {
 	auto r = pixel_color.x();
 	auto g = pixel_color.y();
 	auto b = pixel_color.z();
-	// Divide the color by the number of samples and gamma-correct for gamma = 2.0.
+	// 调gamma值， gamma = 2.0.
 	auto scale = 1.0 / samples_per_pixel;
-	r = sqrt(scale * r);
-	g = sqrt(scale * g);
-	b = sqrt(scale * b);
+	r = scale * r;
+	g = scale * g;
+	b = scale * b;
 
-	/*int ir = static_cast<int>(256 - 256 * clamp(r, 0.0, 0.999));
-	int ig = static_cast<int>(256 - 256 * clamp(g, 0.0, 0.999));
-	int ib = static_cast<int>(256 - 256 * clamp(b, 0.0, 0.999));*/
+	/*int ir = static_cast<int>(clamp(r, 0.0, 0.999));
+	int ig = static_cast<int>(clamp(g, 0.0, 0.999));
+	int ib = static_cast<int>(clamp(b, 0.0, 0.999));*/
+
+	r = sqrt(r);
+	g = sqrt(g);
+	b = sqrt(b);
 
 	gCanvas[y][x] = color(r, g, b);
 }
@@ -637,8 +611,8 @@ void render_row(int j, int image_width, int image_height, int samples_per_pixel,
             auto v = (double(j) + random_double()) / (image_height - 1);
             ray r = cam.get_ray(u, v);
             //pixel_color += ray_color1(r, background, world, light, max_depth); // 点光源
-			pixel_color += ray_color(r, background, world, max_depth); // 蒙特卡洛积分
-			/*pixel_color += ray_color(r, world, max_depth);*/
+			//pixel_color += ray_color(r, background, world, max_depth); // 蒙特卡洛积分
+			pixel_color += ray_color(r, world, max_depth);
 		}
         write_color(i, j, pixel_color, samples_per_pixel);
     }
@@ -656,6 +630,7 @@ void render_image(int image_width, int image_height, int samples_per_pixel, cons
     for (auto& t : threads) {
         t.join();
     }
+
 }
 
 // 场景、相机选择与渲染
@@ -740,7 +715,7 @@ void rendering()
 	default:
 	case 9: // 真正的最终场景
 		world = final_scene();
-		lookfrom = point3(300, 300, 300);
+		lookfrom = point3(5, 1, -3);
 		lookat = point3(0, 0, 0);
 		vfov = 40.0;
 		break;
@@ -749,7 +724,7 @@ void rendering()
 	
 	// Camera
 	vec3 vup(0, 1, 0);
-	auto dist_to_focus = 10.0;
+	auto dist_to_focus = 100.0;
 
 	camera cam(lookfrom, lookat, vup, vfov, aspect_ratio, aperture, dist_to_focus,
 		0.0, 1.0);

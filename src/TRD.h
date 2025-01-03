@@ -13,17 +13,23 @@ const int max_depth = 50; // 最大漫反射次数
 color ray_color(const ray& r, const hittable& world, int depth) {
 	hit_record rec;
 
-	// 如果超过最大深度则不提供贡献
+	// 如果超过最大深度则返回黑色
 	if (depth <= 0)
 		return color(0, 0, 0);
 
-	if (world.hit(r, 0.0001, infinity, rec)) {
+	// 如果光线与场景中的物体相交
+	if (world.hit(r, 0.001, infinity, rec)) {
 		ray scattered;
 		color attenuation;
+		// 如果反射
 		if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
 			return attenuation * ray_color(scattered, world, depth - 1);
-		return color(0, 0, 0);
+		else {
+			return rec.mat_ptr->emitted(rec.u, rec.v, rec.p); // 自发光颜色
+		}
 	}
+
+	// 背景颜色
 	vec3 unit_direction = unit_vector(r.direction()); // 射线方向
 	auto t = 0.5 * (unit_direction.y() + 1.0); // 缩放到[0,1]
 	return (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0); // 根据t在两个颜色间插值

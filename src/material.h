@@ -165,15 +165,16 @@ public:
 
 // 通用材质类 (of .obj)
 // 包含环境光、漫反射光、镜面反射光、光泽度和可选的漫反射纹理（图片）
+// 根据光照模型进行对应的运算
 class generic_material : public material {
 public:
 	// 构造函数
-	generic_material(const vec3& ambient, const vec3& diffuse, const vec3& specular, double shininess, double ref_idx, std::shared_ptr<texture> diffuse_texture = nullptr)
-		: ambient(ambient), diffuse(diffuse), specular(specular), shininess(shininess), ref_idx(ref_idx), diffuse_texture(diffuse_texture) {}
-	// 计算光线与材质相交后的散射行为
+	generic_material(const vec3& ambient, const vec3& diffuse, const vec3& specular, double shininess, double ref_idx, std::shared_ptr<texture> diffuse_texture, const int illum, const vec3& emitted)
+		: ambient(ambient), diffuse(diffuse), specular(specular), shininess(shininess), ref_idx(ref_idx), diffuse_texture(diffuse_texture), illum(illum), light_color(emitted) {}
+
+	// 光线与材质相交后的散射
 	virtual bool scatter(
-		const ray& r_in, const hit_record& rec, color& attenuation, ray&
-		scattered
+		const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
 	) const override {
 		// 计算入射光线的单位方向向量
 		vec3 unit_direction = unit_vector(r_in.direction());
@@ -184,16 +185,32 @@ public:
 		// 计算入射角的正弦值
 		double sin_theta = sqrt(1.0 - cos_theta * cos_theta);
 
+
 		// 判断是否发生全反射
 		bool cannot_refract = ref_idx * sin_theta > 1.0;
 		vec3 direction;
 
-		// 根据全反射判断或 Schlick 的近似公式选择反射或折射方向
-		if (cannot_refract || reflectance(cos_theta, ref_idx) > random_double()) {
-			direction = reflected;
-		}
-		else {
+		// 根据光照模型选择不同的散射行为
+		switch (illum) {
+		case 4: // 高光反射和透明度
+			if (cannot_refract || reflectance(cos_theta, ref_idx) > random_double()) {
+				direction = reflected + fuzz() * random_in_unit_sphere(); // 添加模糊扰动;
+			}
+			else {
+				direction = refract(unit_direction, rec.normal, ref_idx);
+			}
+			break;
+		case 7: // 反射和透明度（即为光源）
 			direction = refract(unit_direction, rec.normal, ref_idx);
+			return false;
+			break;
+		case 3: // 镜面反射(添加模糊扰动)
+			direction = reflected + fuzz() * random_in_unit_sphere(); // 添加模糊扰动;
+			break;
+		default:
+			// 默认漫反射
+			direction = rec.normal + random_unit_vector();
+			break;
 		}
 
 		// 生成新的散射光线
@@ -212,13 +229,20 @@ public:
 		return true;
 	}
 
+	// 自发光颜色
+	virtual vec3 emitted(double u, double v, const vec3& p) const override {
+		return light_color;
+	}
+
 	// 材质属性
 	vec3 ambient; // 环境光
 	vec3 diffuse; // 漫反射光
 	vec3 specular; // 镜面反射光
-	double shininess; // 光泽度
+	double shininess; // 光泽度(镜面反射指数)
 	double ref_idx; // 折射率
 	std::shared_ptr<texture> diffuse_texture; // 漫反射纹理
+	vec3 light_color; // 自发光颜色
+	int illum; // 光照模型
 
 private:
 	// 使用 Schlick 的近似公式计算反射率
@@ -226,6 +250,11 @@ private:
 		auto r0 = (1 - ref_idx) / (1 + ref_idx);
 		r0 = r0 * r0;
 		return r0 + (1 - r0) * pow((1 - cosine), 5);
+	}
+
+	// 计算模糊因子
+	double fuzz() const {
+		return 1.0 / (shininess + 1.0);
 	}
 };
 
